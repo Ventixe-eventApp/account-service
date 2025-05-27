@@ -1,6 +1,6 @@
 ﻿namespace Presentation.Models;
 
-public class RegisterAccountResponse
+public class LoginAccountResponse
 {
     public string UserId { get; set; } = null!;
 }

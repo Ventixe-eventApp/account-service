@@ -4,9 +4,10 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Presentation.Services;
 
-public class AccountService(UserManager<IdentityUser> userManager) : IAccountService
+public class AccountService(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager) : IAccountService
 {
     private readonly UserManager<IdentityUser> _userManager = userManager;
+    private readonly SignInManager<IdentityUser> _signInManager = signInManager;
 
     public async Task<AccountResult<RegisterAccountResponse>> RegisterAsync(RegisterAccountRequest request)
     {
@@ -37,6 +38,36 @@ public class AccountService(UserManager<IdentityUser> userManager) : IAccountSer
         };
     }
 
+    public async Task<AccountResult> LoginAsync(LoginAccountRequest request)
+    {
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user == null)
+        {
+            return new AccountResult
+            {
+                Succeeded = false,
+                StatusCode = 404,
+                Error = "User not found"
+            };
+        }
+        var result = await _signInManager.PasswordSignInAsync(user, request.Password, false, false);
+        if (!result.Succeeded)
+        {
+            return new AccountResult
+            {
+                Succeeded = false,
+                StatusCode = 401,
+                Error = "Invalid email or password"
+            };
+        }
+        return new AccountResult
+        {
+            Succeeded = true,
+            StatusCode = 200
+        };
+
+    }
+
     public async Task<bool> AlreadyExistsAsync(string email)
     {
         var exists = await _userManager.FindByEmailAsync(email);
@@ -45,8 +76,16 @@ public class AccountService(UserManager<IdentityUser> userManager) : IAccountSer
 
         return false;
 
+    }
 
-
+    public async Task<AccountResult> LogoutAsync()
+    {
+        await _signInManager.SignOutAsync();
+        return new AccountResult
+        {
+            Succeeded = true,
+            StatusCode = 200
+        };
     }
 }
 

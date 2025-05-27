@@ -10,8 +10,7 @@ namespace Presentation.Controllers;
 public class AccountsController(IAccountService accountService) : ControllerBase
 {
     private readonly IAccountService _accountService = accountService;
-
-
+ 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterAccountRequest request)
     {
@@ -21,6 +20,24 @@ public class AccountsController(IAccountService accountService) : ControllerBase
         }
         var result = await _accountService.RegisterAsync(request);
 
+        if (result.Succeeded)
+        {
+            return Ok(result.Result);
+        }
+        return BadRequest(result);
+    }
+
+    
+
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginAccountRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        var result = await _accountService.LoginAsync(request);
         if (result.Succeeded)
         {
             return Ok(result);
@@ -39,4 +56,6 @@ public class AccountsController(IAccountService accountService) : ControllerBase
             Succeeded = exists
         });
     }
+
+
 }
