@@ -28,8 +28,6 @@ public class AccountsController(IAccountService accountService) : ControllerBase
     }
 
     
-
-
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginAccountRequest request)
     {
@@ -39,10 +37,19 @@ public class AccountsController(IAccountService accountService) : ControllerBase
         }
         var result = await _accountService.LoginAsync(request);
         if (result.Succeeded)
-        {
             return Ok(result);
-        }
-        return BadRequest(result);
+
+        return StatusCode(result.StatusCode, new { message = result.Error ?? "Failed to log in" });
+    }
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+         var result = await _accountService.LogoutAsync();
+        if(!result.Succeeded)
+            return Ok(new  { Succeeded = true, Message = "Logged out successfully."  });
+
+        return StatusCode(result.StatusCode, new { message = result.Error ?? "Logout failed" });
     }
 
 

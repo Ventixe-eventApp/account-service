@@ -38,12 +38,12 @@ public class AccountService(UserManager<IdentityUser> userManager, SignInManager
         };
     }
 
-    public async Task<AccountResult> LoginAsync(LoginAccountRequest request)
+    public async Task<AccountResult<LoginAccountResponse>> LoginAsync(LoginAccountRequest request)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
         {
-            return new AccountResult
+            return new AccountResult<LoginAccountResponse>
             {
                 Succeeded = false,
                 StatusCode = 404,
@@ -53,17 +53,20 @@ public class AccountService(UserManager<IdentityUser> userManager, SignInManager
         var result = await _signInManager.PasswordSignInAsync(user, request.Password, false, false);
         if (!result.Succeeded)
         {
-            return new AccountResult
+            return new AccountResult<LoginAccountResponse>
             {
                 Succeeded = false,
                 StatusCode = 401,
                 Error = "Invalid email or password"
             };
         }
-        return new AccountResult
+        return new AccountResult<LoginAccountResponse>
         {
             Succeeded = true,
-            StatusCode = 200
+            Result = new LoginAccountResponse
+            {
+                UserId = user.Id
+            }
         };
 
     }
